@@ -9,8 +9,6 @@
 // See COPYING for details
 "use strict";
 
-const Q = require('q');
-Q.longStackSupport = true;
 require('../polyfill');
 
 const assert = require('assert');

@@ -9,8 +9,6 @@
 // See COPYING for details
 "use strict";
 
-const Q = require('q');
-
 const user = require('../util/user');
 const EngineManager = require('../almond/enginemanagerclient');
 const { BadRequestError } = require('../util/errors');
@@ -47,7 +45,7 @@ WebsocketApiDelegate.prototype.$rpcMethods = ['send'];
 module.exports.results = function(ws, req, next) {
     var user = req.user;
 
-    Q.try(() => {
+    Promise.resolve().then(() => {
         return EngineManager.get().getEngine(user.id);
     }).then((engine) => {
         const onclosed = (userId) => {

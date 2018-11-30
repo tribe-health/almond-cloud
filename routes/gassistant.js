@@ -9,7 +9,6 @@
 // See COPYING for details
 "use strict";
 
-const Q = require('q');
 const express = require('express');
 const passport = require('passport');
 
@@ -97,7 +96,7 @@ router.post('/', (req, res, next) => {
     }
 
     function fallback(agent) {
-        return Q.try(() => {
+        return Promise.resolve().then(() => {
             return EngineManager.get().getEngine(user.id);
         }).then((engine) => {
             return engine.assistant.getOrOpenConversation('alexa:' + req.body.originalDetectIntentRequest.payload.conversation.conversationId,

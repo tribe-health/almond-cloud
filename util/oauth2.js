@@ -38,7 +38,7 @@ function authOAuth2Client(clientId, clientSecret, done) {
             else
                 return rows[0];
         });
-    }).nodeify(done);
+    }).then((client) => done(null, client), done);
 }
 
 passport.use('oauth2-client-basic', new BasicStrategy(authOAuth2Client));
@@ -51,7 +51,7 @@ server.serializeClient((client, done) => {
 server.deserializeClient((id, done) => {
     db.withClient((dbClient) => {
         return model.getClient(dbClient, id);
-    }).nodeify(done);
+    }).then((client) => done(null, client), done);
 });
 
 // Register supported grant types.

@@ -10,9 +10,9 @@
 // See COPYING for details
 "use strict";
 
-const Q = require('q');
 const Tp = require('thingpedia');
 const fs = require('fs');
+const util = require('util');
 const tmpfile = require('tmp');
 const crypto = require('crypto');
 
@@ -120,10 +120,10 @@ module.exports = class ImageCacheManager {
         });
     }
 
-    flush() {
+    async flush() {
         if (!this._dirty)
-            return Q();
-        return Q.nfcall(fs.writeFile, this._filename, JSON.stringify(this._store, undefined, 2));
+            return;
+        await util.promisify(fs.writeFile)(this._filename, JSON.stringify(this._store, undefined, 2));
     }
 
     _scheduleWrite() {
@@ -133,7 +133,7 @@ module.exports = class ImageCacheManager {
 
         setTimeout(() => {
             this._writeScheduled = false;
-            this.flush().done();
+            this.flush();
         }, this._writeTimeout);
     }
 };

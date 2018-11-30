@@ -65,28 +65,22 @@ function getAllDevices(req, engine) {
     });
 }
 
-function getInfo(req) {
-    return EngineManager.get().isRunning(req.user.id).then((isRunning) => {
-        if (!isRunning)
-            return null;
+async function getInfo(req) {
+    const isRunning = await EngineManager.get().isRunning(req.user.id);
+    if (!isRunning)
+        return [isRunning, [], []];
+
+    const engine = await EngineManager.get().getEngine(req.user.id);
+    const [appinfo, devinfo] = await Promise.all([getAllApps(req, engine), getAllDevices(req, engine)]);
+    devinfo.sort((d1, d2) => {
+        if (d1.name < d2.name)
+            return -1;
+        else if (d1.name > d2.name)
+            return 1;
         else
-            return EngineManager.get().getEngine(req.user.id);
-    }).then((engine) => {
-        if (engine)
-            return Promise.all([true, getAllApps(req, engine), getAllDevices(req, engine)]);
-        else
-            return [false, [],[]];
-    }).then(([isRunning, appinfo, devinfo]) => {
-        devinfo.sort((d1, d2) => {
-            if (d1.name < d2.name)
-                return -1;
-            else if (d1.name > d2.name)
-                return 1;
-            else
-                return 0;
-        });
-        return [isRunning, appinfo, devinfo];
+            return 0;
     });
+    return [isRunning, appinfo, devinfo];
 }
 
 router.get('/', (req, res, next) => {

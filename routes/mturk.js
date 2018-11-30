@@ -9,8 +9,8 @@
 // See COPYING for details
 "use strict";
 
-const Q = require('q');
 const fs = require('fs');
+const util = require('util');
 const csv = require('csv');
 const express = require('express');
 const db = require('../util/db');
@@ -29,6 +29,71 @@ const { BadRequestError } = require('../util/errors');
 
 var router = express.Router();
 
+async function uploadBatch(dbClient, req) {
+    const batch = await model.create(dbClient, { name: req.body.name, submissions_per_hit: req.body.submissions_per_hit });
+    let minibatch = [];
+    let columns = ['batch'];
+    for (let i = 1; i < 5; i ++ ) {
+        columns.push(`id${i}`);
+        columns.push(`thingtalk${i}`);
+        columns.push(`sentence${i}`);
+    }
+    columns = columns.join(',');
+    function doInsert() {
+        let data = minibatch;
+        minibatch = [];
+        return db.insertOne(dbClient, `insert into mturk_input(${columns}) values ?`, [data]);
+    }
+
+    function finish() {
+        if (minibatch.length === 0)
+            return Promise.resolve();
+        return doInsert();
+    }
+
+    function insertOneHIT(programs) {
+        let row = [batch.id];
+        programs.forEach((p) => {
+            row.push(p.id);
+            row.push(p.code);
+            row.push(p.sentence);
+        });
+        minibatch.push(row);
+        if (minibatch.length < 100)
+            return Promise.resolve();
+        return doInsert();
+    }
+
+    const parser = csv.parse({ columns: true, delimiter: '\t' });
+    fs.createReadStream(req.files.upload[0].path).pipe(parser);
+
+    let promises = [];
+    let programs = [];
+    await new Promise((resolve, reject) => {
+        parser.on('data', (row) => {
+            programs.push(row);
+            if (programs.length === 4) {
+                promises.push(insertOneHIT(programs));
+                programs = [];
+            }
+        });
+        parser.on('error', reject);
+        parser.on('end', resolve);
+    });
+    await Promise.all(promises);
+    await finish();
+}
+async function createBatch(req, res) {
+    try {
+        await db.withTransaction((dbClient) => {
+            return uploadBatch(dbClient, req);
+        });
+    } finally {
+        await util.promisify(fs.unlink)(req.files.upload[0].path);
+    }
+    res.redirect(303, '/mturk');
+}
+
 router.post('/create', multer({ dest: platform.getTmpDir() }).fields([
     { name: 'upload', maxCount: 1 }
 ]), csurf({ cookie: false }),
@@ -41,63 +106,7 @@ router.post('/create', multer({ dest: platform.getTmpDir() }).fields([
         return;
     }
 
-    Q(db.withTransaction((dbClient) => {
-        return model.create(dbClient, { name: req.body.name, submissions_per_hit: req.body.submissions_per_hit }).then((batch) => {
-            let minibatch = [];
-            let columns = ['batch'];
-            for (let i = 1; i < 5; i ++ ) {
-                columns.push(`id${i}`);
-                columns.push(`thingtalk${i}`);
-                columns.push(`sentence${i}`);
-            }
-            columns = columns.join(',');
-            function doInsert() {
-                let data = minibatch;
-                minibatch = [];
-                return db.insertOne(dbClient, `insert into mturk_input(${columns}) values ?`, [data]);
-            }
-
-            function finish() {
-                if (minibatch.length === 0)
-                    return Promise.resolve();
-                return doInsert();
-            }
-
-            function insertOneHIT(programs) {
-                let row = [batch.id];
-                programs.forEach((p) => {
-                    row.push(p.id);
-                    row.push(p.code);
-                    row.push(p.sentence);
-                });
-                minibatch.push(row);
-                if (minibatch.length < 100)
-                    return Promise.resolve();
-                return doInsert();
-            }
-
-            const parser = csv.parse({ columns: true, delimiter: '\t' });
-            fs.createReadStream(req.files.upload[0].path).pipe(parser);
-
-            let promises = [];
-            let programs = [];
-            return new Promise((resolve, reject) => {
-                parser.on('data', (row) => {
-                    programs.push(row);
-                    if (programs.length === 4) {
-                        promises.push(insertOneHIT(programs));
-                        programs = [];
-                    }
-                });
-                parser.on('error', reject);
-                parser.on('end', resolve);
-            }).then(() => Promise.all(promises)).then(() => finish());
-        });
-    })).finally(() => {
-        return Q.nfcall(fs.unlink, req.files.upload[0].path);
-    }).then(() => {
-        res.redirect(303, '/mturk');
-    }).catch(next);
+    createBatch(req, res).catch(next);
 });
 
 router.use(csurf({ cookie: false }));

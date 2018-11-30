@@ -13,8 +13,6 @@
 // load thingpedia to initialize the polyfill
 require('thingpedia');
 
-const Q = require('q');
-Q.longStackSupport = true;
 process.on('unhandledRejection', (up) => { throw up; });
 require('../util/config_init');
 
@@ -111,7 +109,14 @@ class ControlSocketServer {
     }
 
     start() {
-        return Q.ninvoke(this._server, 'listen', this._address);
+        return new Promise((resolve, reject) => {
+            this._server.listen(this._address, (err) => {
+                if (err)
+                    reject(err);
+                else
+                    resolve();
+            });
+        });
     }
 
     stop() {

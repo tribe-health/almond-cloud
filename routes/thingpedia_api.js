@@ -9,7 +9,6 @@
 // See COPYING for details
 "use strict";
 
-const Q = require('q');
 const express = require('express');
 const accepts = require('accepts');
 const passport = require('passport');
@@ -1639,7 +1638,14 @@ function getEntityIcon(res, next, entityValue, entityType, entityDisplay) {
         else
             searchTerm += ' logo png transparent';
 
-        Q.ninvoke(Bing, 'images', searchTerm, { count: 1, offset: 0 }).then(([res, body]) => {
+        new Promise((resolve, reject) => {
+            Bing.images(searchTerm, { count: 1, offset: 0 }, (err, res, body) => {
+                if (err)
+                    reject(err);
+                else
+                    resolve([res, body]);
+            });
+        }).then(([res, body]) => {
             return cacheManager.cache(cacheKey, body.value[0].contentUrl);
         }).then((filename) => {
             res.redirect(301, '/cache/' + filename);

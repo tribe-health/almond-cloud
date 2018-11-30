@@ -10,7 +10,7 @@
 "use strict";
 
 const fs = require('fs');
-const Q = require('q');
+const util = require('util');
 const Url = require('url');
 const sanitize = require('sanitize-filename');
 
@@ -54,7 +54,7 @@ if (Config.FILE_STORAGE_BACKEND === 's3') {
                                      Key: 'icons/' + name + '.png',
                                      Body: blob,
                                      ContentType: 'image/png' });
-            return Q.ninvoke(upload, 'send').then(() => {
+            return util.promisify(upload.send).call(upload).then(() => {
                 console.log('Successfully uploading png file to S3 for ' + name);
             });
         },
@@ -65,7 +65,7 @@ if (Config.FILE_STORAGE_BACKEND === 's3') {
                                      Body: blob,
                                      ContentType: 'image/png' });
 
-            return Q.ninvoke(upload, 'send').then(() => {
+            return util.promisify(upload.send).call(upload).then(() => {
                 console.log('Successfully uploading png file to S3 for ' + name);
             });
         },
@@ -76,7 +76,7 @@ if (Config.FILE_STORAGE_BACKEND === 's3') {
                                      Body: blob,
                                      ContentType: contentType });
 
-            return Q.ninvoke(upload, 'send');
+            return util.promisify(upload.send).call(upload);
         },
         downloadZipFile(name, version, directory = 'devices') {
             name = sanitize(name);
@@ -92,7 +92,7 @@ if (Config.FILE_STORAGE_BACKEND === 's3') {
                                      Key: directory + '/' + name + '-v' + version + '.zip',
                                      Body: blob,
                                      ContentType: 'application/zip' });
-            return Q.ninvoke(upload, 'send').then(() => {
+            return util.promisify(upload.send).call(upload).then(() => {
                 console.log('Successfully uploaded zip file to S3 for ' +
                             name + ' v' + version);
             });

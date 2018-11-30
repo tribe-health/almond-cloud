@@ -9,9 +9,9 @@
 // See COPYING for details
 "use strict";
 
-const Q = require('q');
 const assert = require('assert');
 const crypto = require('crypto');
+const util = require('util');
 const db = require('./db');
 const model = require('../model/user');
 const { makeRandom } = require('./random');
@@ -20,7 +20,7 @@ const { ForbiddenError, BadRequestError, InternalError } = require('./errors');
 const Config = require('../config');
 
 function hashPassword(salt, password) {
-    return Q.nfcall(crypto.pbkdf2, password, salt, 10000, 32, 'sha1')
+    return util.promisify(crypto.pbkdf2)(password, salt, 10000, 32, 'sha1')
         .then((buffer) => buffer.toString('hex'));
 }
 

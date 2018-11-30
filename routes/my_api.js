@@ -9,7 +9,6 @@
 // See COPYING for details
 "use strict";
 
-const Q = require('q');
 const express = require('express');
 const passport = require('passport');
 
@@ -76,7 +75,7 @@ router.get('/parse', user.requireScope('user-read'), iv.validateGET({ q: '?strin
         return;
     }
 
-    Q.try(() => {
+    Promise.resolve().then(() => {
         return EngineManager.get().getEngine(req.user.id);
     }).then((engine) => {
         return engine.assistant.parse(query, targetJson);
@@ -99,7 +98,7 @@ async function describeDevice(d, req) {
 }
 
 router.get('/devices/list', user.requireScope('user-read'), (req, res, next) => {
-    Q.try(() => {
+    Promise.resolve().then(() => {
         return EngineManager.get().getEngine(req.user.id);
     }).then((engine) => {
         return engine.devices.getAllDevices().then((devices) => {
@@ -122,7 +121,7 @@ function describeApp(app) {
 
 router.post('/apps/create', user.requireScope('user-exec-command'),
     iv.validatePOST({ code: 'string' }, { accept: 'json', json: true }), (req, res, next) => {
-    Q.try(() => {
+    Promise.resolve().then(() => {
         return EngineManager.get().getEngine(req.user.id);
     }).then((engine) => {
         return engine.assistant.createApp(req.body);
@@ -134,7 +133,7 @@ router.post('/apps/create', user.requireScope('user-exec-command'),
 });
 
 router.get('/apps/list', user.requireScope('user-read'), (req, res, next) => {
-    Q.try(() => {
+    Promise.resolve().then(() => {
         return EngineManager.get().getEngine(req.user.id);
     }).then((engine) => {
         return engine.apps.getAllApps().then((apps) => {
@@ -146,7 +145,7 @@ router.get('/apps/list', user.requireScope('user-read'), (req, res, next) => {
 });
 
 router.get('/apps/get/:appId', user.requireScope('user-read'), (req, res, next) => {
-    Q.try(() => {
+    Promise.resolve().then(() => {
         return EngineManager.get().getEngine(req.user.id);
     }).then((engine) => {
         return engine.apps.getApp(req.params.appId).then((app) => {
@@ -160,7 +159,7 @@ router.get('/apps/get/:appId', user.requireScope('user-read'), (req, res, next) 
 });
 
 router.post('/apps/delete/:appId', user.requireScope('user-exec-command'), (req, res, next) => {
-    Q.try(() => {
+    Promise.resolve().then(() => {
         return EngineManager.get().getEngine(req.user.id);
     }).then((engine) => {
         return engine.apps.getApp(req.params.appId).then((app) => {

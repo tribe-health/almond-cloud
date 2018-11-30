@@ -1,7 +1,7 @@
 "use strict";
 
-const Q = require('q');
 const fs = require('fs');
+const util = require('util');
 const csv = require('csv');
 const Stream = require('stream');
 
@@ -158,7 +158,7 @@ module.exports = {
             });
         } finally {
             if (req.files.upload && req.files.upload.length)
-                await Q.nfcall(fs.unlink, req.files.upload[0].path);
+                await util.promisify(fs.unlink)(req.files.upload[0].path);
         }
     },
 
@@ -234,7 +234,7 @@ module.exports = {
             });
         } finally {
             if (req.files.upload && req.files.upload.length)
-                await Q.nfcall(fs.unlink, req.files.upload[0].path);
+                await util.promisify(fs.unlink)(req.files.upload[0].path);
         }
     }
 };

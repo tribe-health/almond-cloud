@@ -43,7 +43,7 @@ router.get('/organization/:id_hash', (req, res, next) => {
         } else {
             throw e;
         }
-    });
+    }).catch(next);
 });
 
 function md5(x) {
@@ -74,7 +74,7 @@ router.get('/user/:cloud_id', (req, res, next) => {
         } else {
             throw e;
         }
-    });
+    }).catch(next);
 });
 
 module.exports = router;
