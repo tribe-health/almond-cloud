@@ -1848,7 +1848,12 @@ csurf@^1.9.0:
     csrf "3.1.0"
     http-errors "~1.7.3"
 
-csv-parse@^4.4.5, csv-parse@^4.6.1:
+csv-parse@^4.10.0:
+  version "4.10.0"
+  resolved "https://registry.yarnpkg.com/csv-parse/-/csv-parse-4.10.0.tgz#2b2f8ffe17811e0e41ee43e5271aecdd2cfd11b4"
+  integrity sha512-cv1sM2raMCyGEmGnWdvgV4JOXaLtZew+DnQYScmubyifWKI46ttP350gqt7p79pJZQ5G8OIm6s7mQ5ZwIN0xBg==
+
+csv-parse@^4.4.5:
   version "4.8.9"
   resolved "https://registry.yarnpkg.com/csv-parse/-/csv-parse-4.8.9.tgz#0d3f0973f415677b01d17abaa221fbffc6125760"
   integrity sha512-uDxIDIDLb89gxqixSgGqDj3EA5A8D0pgUeyp9Qut8u+eCIC8IXkTtaxJEnnWDb6N2HqBY64suSlcOGg5ZBtsAQ==
